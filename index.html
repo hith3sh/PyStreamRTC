@@ -1,32 +1,124 @@
-<html>
-  <head>
-    <meta charset="utf-8"/>
-    <style>
-      .error { color: red; }
-    </style>
-    <script src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
-    <script src="webrtc.js"></script>
-    <script>
-      window.onload = websocketServerConnect;
-    </script>
-  </head>
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>synced-playback</title>
+	</head>
+	<body id="body">
+		<video id="video1" autoplay playsinline></video>
 
-  <body>
-    <div id="video"></div>
-    <div>
+		<div>
 		  <input type="number" id="seekTime" value="30">
 		  <button type="button" onClick="seekClick()">Seek</button>
 		  <button type="button" onClick="playClick()">Play</button>
 		  <button type="button" onClick="pauseClick()">Pause</button>
 		</div>
-    <div>Status: <span id="status">unknown</span></div>
-    <div><textarea id="text" cols=40 rows=4></textarea></div>
-    <br/>
-    <div>
-      <input id="peer-connect-button" onclick="onConnectClicked();" type="button" value="Connect">
-      <!-- Request the peer to send the offer by sending the OFFER_REQUEST message. -->
-      <input id="remote-offerer" type="checkbox" autocomplete="off"><span>Remote offerer</span>
-    </div>
-    <br/>
-  </body>
+
+		<script>
+			let conn = new WebSocket('ws://' + window.location.host + '/ws')
+			let pc = new RTCPeerConnection()
+			
+			window.seekClick = () => {
+				conn.send(JSON.stringify({event: 'seek', data: document.getElementById('seekTime').value}))
+			}
+			window.playClick = () => {
+				conn.send(JSON.stringify({event: 'play', data: ''}))
+			}
+			window.pauseClick = () => {
+				conn.send(JSON.stringify({event: 'pause', data: ''}))
+			}
+
+			pc.ontrack = function (event) {
+			  console.log('track received', event.track.kind, event.track);
+			  if (event.track.kind === 'video') {
+				var el = document.getElementById('video1')
+				el.srcObject = event.streams[0]
+				el.autoplay = true
+				el.controls = true
+				console.log("get element by id video1", el)
+				el.onloadedmetadata = ()=>{
+					console.log('video metadata loaded');
+					el.play().then(() => console.log('video playback started')).catch(e=> console.log('video playback failed',e))
+					}
+				}
+			 
+			  
+			  el.onloadedmetadata = () => {
+					console.log('Video metadata loaded');
+				}
+			  el.onplaying = () => {
+					console.log('Video started playing');
+				}
+			  el.onwaiting = () => {
+					console.log('Video is waiting for data');
+				}
+			  el.onerror = (e) => {
+					console.error('Video error:', e);
+				}
+			}
+			pc.onconnectionstatechange = event => {
+				console.log("Connection State Change:", pc.connectionState);
+				if (pc.connectionState === "failed") {
+					console.error("Connection Failed. Possible SDP Mismatch or ICE Failure.");
+				}
+			}
+
+			pc.onicecandidate = event =>{
+				if (event.candidate){
+					console.log('sending ice candidate to server')
+					conn.send(JSON.stringify({
+						event: 'candidate',
+						data: event.candidate
+					}))
+				}else{
+					console.log('ice candidate gathering complete')
+				}
+			}
+			pc.oniceconnectionstatechange = () => {
+				if (pc.iceConnectionState == "connected") {
+					console.log("ICE gathering complete");
+				}
+				console.log('Connection state:', pc.connectionState);
+			}
+
+			pc.onicegatheringstatechange = () => {
+				console.log('ICE gathering state:', pc.iceGatheringState);
+			}
+
+			conn.onopen = () => {
+				console.log('websocket connection opened, waiting for offer')
+			}
+			conn.onclose = evt => {
+				console.log('Connection closed')
+			}
+			conn.onmessage = async evt => {
+				let msg = JSON.parse(evt.data)
+				if (!msg) {
+					return console.log('failed to parse msg')
+				}
+
+				switch (msg.event) {
+				case 'offer':
+					console.log('received offer from server')
+					await pc.setRemoteDescription(new RTCSessionDescription(msg.data))
+					const answer = await pc.createAnswer()
+					await pc.setLocalDescription(answer)
+					conn.send(JSON.stringify({
+						event:'answer',
+						data:answer
+					}))
+					console.log('sent sdp answer')
+                    break;
+				case 'candidate':
+					console.log('received ice candidates from server', msg.data)
+					try {
+						await pc.addIceCandidate(new RTCIceCandidate(msg.data));
+					} catch (error) {
+						console.error('Error adding ICE candidate:', error);
+					}
+					break;
+				}
+			}
+			window.conn = conn
+		</script>
+	</body>
 </html>
