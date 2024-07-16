@@ -12,7 +12,7 @@ Welcome to PyStreamRTC, versatile media streaming solution leveraging the power 
 
 ### Play your video
 `cd PyStreamRTC`
-`python streamer.py --video /path/to/your/video.mp4`
+do `python streamer.py --video /path/to/your/video.mp4`
 ```
 > Starting pipeline
 ======== Running on http://0.0.0.0:8080 ========
