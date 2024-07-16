@@ -8,8 +8,7 @@ Welcome to PyStreamRTC, versatile media streaming solution leveraging the power 
 #### Debian/Ubuntu
 `sudo apt-get install -y gstreamer1.0-plugins-base gstreamer1.0-plugins-good gstreamer1.0-plugins-bad gstreamer1.0-plugins-ugly gstreamer1.0-libav libnice10 libglib2.0-dev`
 
-pip install aiohttp
-pip3 install PyGObject
+`pip install -r requirements.txt`
 
 ### Play your video
 ```
