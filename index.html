@@ -1,0 +1,32 @@
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <style>
+      .error { color: red; }
+    </style>
+    <script src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
+    <script src="webrtc.js"></script>
+    <script>
+      window.onload = websocketServerConnect;
+    </script>
+  </head>
+
+  <body>
+    <div id="video"></div>
+    <div>
+		  <input type="number" id="seekTime" value="30">
+		  <button type="button" onClick="seekClick()">Seek</button>
+		  <button type="button" onClick="playClick()">Play</button>
+		  <button type="button" onClick="pauseClick()">Pause</button>
+		</div>
+    <div>Status: <span id="status">unknown</span></div>
+    <div><textarea id="text" cols=40 rows=4></textarea></div>
+    <br/>
+    <div>
+      <input id="peer-connect-button" onclick="onConnectClicked();" type="button" value="Connect">
+      <!-- Request the peer to send the offer by sending the OFFER_REQUEST message. -->
+      <input id="remote-offerer" type="checkbox" autocomplete="off"><span>Remote offerer</span>
+    </div>
+    <br/>
+  </body>
+</html>
