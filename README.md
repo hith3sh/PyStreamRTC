@@ -7,13 +7,13 @@ Welcome to PyStreamRTC, versatile media streaming solution leveraging the power 
 ### Install GStreamer
 #### Debian/Ubuntu
 `sudo apt-get install -y gstreamer1.0-plugins-base gstreamer1.0-plugins-good gstreamer1.0-plugins-bad gstreamer1.0-plugins-ugly gstreamer1.0-libav libnice10 libglib2.0-dev`
-
+#### Pip install these
 `pip install -r requirements.txt`
 
 ### Play your video
+`cd PyStreamRTC`
+`python streamer.py --video /path/to/your/video.mp4`
 ```
-cd PyStreamRTC
-python streamer.py --video /path/to/your/video.mp4
 > Starting pipeline
 ======== Running on http://0.0.0.0:8080 ========
 have fun!
